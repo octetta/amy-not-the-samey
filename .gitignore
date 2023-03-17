@@ -1,3 +1,8 @@
+_tmp
+amy.*.json
+amy.*.wav
+amy.*.raw
+amy-message-history.txt
 amy-example
 amy-message
 sounds/HS-TR-808-Drums.sf2

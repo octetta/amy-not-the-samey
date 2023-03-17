@@ -20,44 +20,76 @@ def preset(which,osc=0, **kwargs):
     reset(osc=osc)
     if(which==0): # simple note
         send(osc=osc, wave=SINE, bp0="10,1,250,0.7,500,0", bp0_target=TARGET_AMP, **kwargs)
+        # v0w0A10,1,250,0.7,500,0T1
+        # v0w0A10,1,250,0.7,500,0T1;v0f440;+500v0l1;+1000v0l0
     if(which==1): # filter bass
         send(osc=osc, filter_freq=2500, resonance=5, wave=SAW_DOWN, filter_type=FILTER_LPF, bp0="100,0.5,25,0", bp0_target=TARGET_AMP+TARGET_FILTER_FREQ, **kwargs)
+        # v0F2500R5w2G0A100,0.5,25,0T9;v0f110;+500v0l2;+1000v0l0
 
     # TODO -- this is a good one to test the whistle on the bps... 
     if(which==2): # long sine pad to test ADSR
         send(osc=osc, wave=SINE, bp0="0,0,500,1,1000,0.25,750,0", bp0_target=TARGET_AMP, **kwargs)
+        # v0w0A0,0,500,1,1000,0.25,750,0T1;v0f440;+500v0l2;+1000v0l0
 
     if(which==3): # amp LFO example
         reset(osc=osc+1)
         send(osc=osc+1, wave=SINE, vel=0.50, freq=1.5, **kwargs)
         send(osc=osc, wave=PULSE, bp0="150,1,250,0.25,250,0", bp0_target=TARGET_AMP, mod_target=TARGET_AMP, mod_source=osc+1, **kwargs)
+        # v1w0l.5f1.5
+        # v0w1A150.1.250.0.25,250.0T1g1L1
+        # v0f440
+        # +10v0l1;+2000v0l0
     if(which==4): # pitch LFO going up 
         reset(osc=osc+1)
         send(osc=osc+1, wave=SINE, vel=0.50, freq=0.25, **kwargs)
         send(osc=osc, wave=PULSE, bp0="150,1,400,0,0,0", bp0_target=TARGET_AMP, mod_target=TARGET_FREQ, mod_source=osc+1, **kwargs)
+        # v1w0l.5f.25P.5
+        # v0w1A150,1,400,0,0,0T1g5L1
+        # v0f440l1
     if(which==5): # bass drum
         # Uses a 0.25Hz sine wave at 0.5 phase (going down) to modify frequency of another sine wave
         reset(osc=osc+1)
         send(osc=osc+1, wave=SINE, vel=0.50, freq=0.25, phase=0.5, **kwargs)
         send(osc=osc, wave=SINE, vel=0, bp0="500,0,0,0", bp0_target=TARGET_AMP, mod_target=TARGET_FREQ, mod_source=osc+1, **kwargs)
+        # v1w0l.5f.25P.5
+        # v0w0l0A500,0,0,0T1g4L1
+        # v0f110l5
     if(which==6): # noise snare
         send(osc=osc, wave=NOISE, vel=0, bp0="250,0,0,0", bp0_target=TARGET_AMP, **kwargs)
+        # v0w5A250,0,0,0T1
+        # v0l1
     if(which==7): # closed hat
         send(osc=osc, wave=NOISE, vel=0, bp0="25,1,75,0,0,0", bp0_target=TARGET_AMP, **kwargs)
+        # v0w5l0A25,1,75,0,0,0T1
+        # v0l5
     if(which==8): # closed hat from PCM 
         send(osc=osc, wave=PCM, vel=0, patch=0, freq=0, **kwargs)
+        # v0w7l0p0f0
+        # v0l5
     if(which==9): # cowbell from PCM
         send(osc=osc, wave=PCM, vel=0, patch=10, freq=0, **kwargs)
+        # v0w7l0p10f0
+        # v0l5
     if(which==10): # high cowbell from PCM
         send(osc=osc, wave=PCM, vel=0, patch=10, note=70, **kwargs)
+        # v0w7l0p10f0
+        # v0n70l5
     if(which==11): # snare from PCM
         send(osc=osc, wave=PCM, vel=0, patch=5, freq=0, **kwargs)
+        # v0w7l0p5f0
+        # v0l1
     if(which==12): # FM bass 
         send(osc=osc, wave=ALGO, vel=0, patch=21, **kwargs)
+        # v0w8l0p21
+        # v0f220l5
     if(which==13): # Pcm bass drum
         send(osc=osc, wave=PCM, vel=0, patch=1, freq=0, **kwargs)
+        # v0w7l0p1f0
+        # v0l10
     if(which==14): # filtered algo 
         send(wave=ALGO, vel=0, patch=62,filter_freq=2000,resonance=2.5,filter_type=FILTER_LPF, bp0_target=TARGET_FILTER_FREQ,bp0="1,1,500,0,0,0")
+        # v0w8l0p62F2000R2.5G1T8A1,1,500,0,0,0
+        # v0n69l10
 
 
 
