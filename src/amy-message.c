@@ -1525,14 +1525,14 @@ int main(int argc, char ** argv) {
                 prev = this;
             }
             double msec = (double)(1000.0/SAMPLE_RATE*frames);
-            printf("+ AMP s16 [%d,%d] ~> fp [%.06f,%.06f]\n",
+            printf("   AMP s16 [%d,%d] ~> fp [%.06f,%.06f]\n",
                 min, max,
                 map(min, INT16_MIN+1, INT16_MAX, -1.0, 1.0),
                 map(max, INT16_MIN+1, INT16_MAX, -1.0, 1.0));
             char more = 0;
             if (amy_full()) more = 1;
             show(more);
-            printf("- CAP frames [0,%d] ~> [0.000,%.03f] msec\n", frames, msec);
+            printf("   CAP frames [0,%d] ~> [0.000,%.03f] msec\n", frames, msec);
         } else if (input[0] == '^') {
             int pid = getpid();
             int epoch = time(NULL);
@@ -1652,6 +1652,31 @@ int main(int argc, char ** argv) {
             amy_enable_capture(0, 0);
             if (verbose) {
                 printf("# capture stopped\n");
+            }
+        } else if (input[0] == '*') {
+            double a0_max = (double)INT16_MIN;
+            double s16_max = (double)(INT16_MAX);
+            int16_t *capture = amy_captured();
+            int length = amy_frames();
+            int i;
+            // maximize capture buffer dynamic range
+            for (i=0; i<length; i++) {
+                double n = (double)capture[i];
+                a0_max = MAX(a0_max, n);
+            }
+            double factor = s16_max / a0_max;
+            printf("# a0_max=%f, s16_max=%f, factor=%f\n",
+                a0_max, s16_max, factor);
+            // multiply each value by the scale to maximize w/o changing 0 point
+            for (i=0; i<length; i++) {
+                double sample = (double)capture[i];
+                double n = (sample * factor);
+                if (n > (double)INT16_MAX) {
+                    n = (double)INT16_MAX;
+                } else if (n < (double)(INT16_MIN+1)) {
+                    n = (double)INT16_MIN+1;
+                }
+                capture[i] = (int16_t)(n);
             }
         } else if (input[0] == '~') {
             // scan capture
