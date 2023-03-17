@@ -1665,9 +1665,9 @@ int main(int argc, char ** argv) {
                 a0_max = MAX(a0_max, n);
             }
             double factor = s16_max / a0_max;
-            printf("# a0_max=%f, s16_max=%f, factor=%f\n",
+            printf("# a0_max=%.02f, s16_max=%.02f, factor=%.04f\n",
                 a0_max, s16_max, factor);
-            // multiply each value by the scale to maximize w/o changing 0 point
+            // multiply each value by the scaling factor
             for (i=0; i<length; i++) {
                 double sample = (double)capture[i];
                 double n = (sample * factor);
