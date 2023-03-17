@@ -13,7 +13,8 @@
 #define MA_NO_GENERATION
 //#define MA_DEBUG_OUTPUT
 #define MINIAUDIO_IMPLEMENTATION
-//#define MA_NO_PULSEAUDIO
+#define MA_NO_PULSEAUDIO
+//#define MA_NO_ALSA
 //#define MA_NO_JACK
 #include "miniaudio.h"
 
@@ -48,8 +49,14 @@ void amy_print_devices() {
         exit(1);
     }
 
+    printf("[");
+    char c = ',';
     for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice += 1) {
-        printf("%d - %s\n", iDevice, pPlaybackInfos[iDevice].name);
+        if (iDevice == (playbackCount-1)) c = ']';
+        printf("{\"id\":%d, \"name\":\"%s\"}%c\n",
+            iDevice,
+            pPlaybackInfos[iDevice].name,
+            c);
     }
 
     ma_context_uninit(&context);
@@ -154,6 +161,12 @@ amy_err_t miniaudio_init() {
     if (ma_device_init(&context, &deviceConfig, &device) != MA_SUCCESS) {
         printf("Failed to open playback device.\n");
         exit(1);
+    }
+
+    if (0) {
+        printf("format:%d\n", deviceConfig.playback.format);
+        printf("channels:%d\n", deviceConfig.playback.channels);
+        printf("sampleRate:%d\n", deviceConfig.sampleRate);
     }
 
     if (ma_device_start(&device) != MA_SUCCESS) {

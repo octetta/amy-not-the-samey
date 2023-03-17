@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AMY wire protocol explorer</title>
+
+<!--
+-->
+<link href="https://fonts.googleapis.com/css?family=Quicksand:500" rel="stylesheet">
+<link href="wiredemo.css" rel="stylesheet">
+
+<!-- FOR TERMINAL -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery.terminal/js/jquery.terminal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.terminal/css/jquery.terminal.min.css"/>
+<!-- END OF TERMINAL STUFF -->
+
+<!-- NOISE STUFF START -->
+<!-- ALSO NEEDS amy.wasm in the same directory -->
+<script type="text/javascript" src="amy.js"></script>
+<script type="text/javascript" src="libwire.js"></script>
+<!-- NOISE STUFF END -->
+
+<script>
+$(document).ready(function(){
+console.log("all?");
+});
+</script>
+</head>
+
+<!-- FOR DIV SCROLLING -->
+<!-- DIV END -->
+
+    <!--
+    body {
+        /* disabling body scrolling */
+        overflow: hidden;
+        margin: auto;
+        background: white;
+    }
+    -->
+      
+<style>
+    .scroll {
+        width: 100%;
+        height: 15em;
+        overflow-x: hidden;
+        overflow-y: auto;
+        text-align:justify;
+        border: 1px black solid;
+    }
+</style>
+
+<body>
+
+<h2>AMY ASCII explorer</h2>
+
+<div id="wire"></div>
+
+<script>
+$('#wire').terminal(function(input) {
+    if (input !== '') {
+        if (input === '?s') {
+            this.echo(millis());
+        } else if (input === '?0') {
+            stopAudio();
+        } else if (input === '?1') {
+            startAudio();
+        } else {
+            wire(input);
+        }
+    }
+}, {
+    greetings: 'enter wire protocol',
+    prompt: '# ',
+    name: 'test',
+    height: 200,
+});
+
+</script>
+
+<br>
+
+<a id="startStop" href="javascript: startAudio()">noise</a>
+
+<br>
+<br>
+
+<div class="scroll">
+<pre>
+<b>wire examples</b>
+# amplitude ADSR example
+v0f220w0A50,1.0,150,0.5,250,0T1
+v0l1
+v0l0
+# lpf ADSR example
+v0f220w2F2500R5A100,0.5,2500,0T8G1
+v0l1
+v0l0
+</pre>
+</div>
+
+<br>
+
+<div class="scroll">
+<pre>
+<b>wire elements</b>
+a Amplitude without retrigger 0.0 -> 1.0+
+b ALGO feedBack 0.0 -> 1.0
+d Duty cycle of pulse 0.001 -> 0.999
+f Frequency of oscillator
+g modulation tarGet 1=amp 2=duty 3=freq 8=filterFreq 16=resonance 32=feedback
+l veLocity at trigger (> 0.0) or note-off (0)
+n midi Note number
+o DX7 algOrithm 1-32
+p Patch PCM (0-66), FM (0-1023), partial (0-16)
+t Timestamp in ms for event
+v oscillator Voice selector 0-63
+w Wave type 0=sine 1=pulse 2=saw-down 3=saw-up 4=triangle 5=noise 6=ks 7=pcm 8=algo 9=partial 10=partials 11=off
+x eq_l in dB, fc=800Hz -15.0 -> 15.0 0=off
+y eq_m in dB, fc=2500Hz -15.0 -> 15.0 0=off
+z eq_h in dB, fc=7500Hz -15.0 -> 15.0 0=off
+
+A bp0
+B bp1
+C bp2
+D Debug
+F center frequency for biquad filter
+G filter type 0=none 1=low-pass 2=band-pass 3=hi-pass
+I ratIo (see AMY webpage)
+L moduLation source oscillator / LFO
+N lateNcy ms
+O which oscillators to use for algorithm list of 6 comma-separated, -1=not-used
+P Phase 0.0 -> 1.0 where oscillator cycle starts
+R Resonance q factor of biquad filter. in practice 0.0 -> 10.0, default 0.7
+S reSet one or all oscillator(s), gain, and eq >64 for all
+T bp0 target
+V Volume knob for everything
+W bp1 target
+X bp2 target
+</pre>
+</div>
+
+<br>
+
+<div class="scroll">
+<pre>
+<b>PARTIALS patches</b>
+ 0 - G1                8 - BCS LGF  E1
+ 1 - CL SHCI A3        9 - DBL HARM G3
+ 2 - PLATE GONG B     10 - VIS LGF#A2
+ 3 - BNS SUST  E3     11 - ANGLECHOIR-C
+ 4 - VI ISUMP2A       12 - OVATION D3
+ 5 - CH.ORGAN D 3     13 - APND.TBL 2
+ 6 - G2               14 - FH CRSC B1
+ 7 - EHS LG F  F2     15 - CHIME E5  -L
+ 8 - BCS LGF  E1      16 - FLS LG F  A3
+ 9 - DBL HARM G3
+</pre>
+
+<pre>
+<b>PCM patches</b>
+
+v0w7n38p30l2 : w7=PCM p30=Sea Shore
+
+ 0 - 808-MARACA-D        23 - Nylon B4          46 - Marimba F#5
+ 1 - 808-KIK 4-D         24 - Windchimes        47 - Fretnoise
+ 2 - 808-SNR 4-D         25 - Clarinet A#5      48 - Piccolo 1-1
+ 3 - 808-SNR 7-D         26 - Synth Bass 2-B1   49 - Std Kick 3
+ 4 - 808-SNR 10D         27 - DX7 Strike 3      50 - Rhodes C5
+ 5 - 808-SNR 12-D        28 - harmnc_e4         51 - Xylophone F#6
+ 6 - 808-C-HAT1-D        29 - dulci_c4          52 - B3 F5
+ 7 - 808-O-HAT1-D        30 - Sea Shore         53 - Elec Kick2
+ 8 - 808-LTOM M-D        31 - Power Snare 1     54 - Low Woodblock
+ 9 - 808-DRYCLP-D        32 - Tom Hi            55 - Clap
+10 - 808-CWBELL-D        33 - Flute D5          56 - High Agogo
+11 - 808-CNGLO2-D        34 - Piccolo A#6       57 - High Woodblock
+12 - 808-CLAVE -D        35 - Violin F6         58 - Ahh Choir C5-L
+13 - Temple Block 3-mf   36 - Viola A#3         59 - Acoustic Bass A#3
+14 - MTnr-3 roll P       37 - Pan Flute C6      60 - Bird
+15 - MTnr-3 hit 4        38 - Tuba D#4          61 - Harmonics 2
+16 - 58_79_CRASHCHOKE1   39 - Oboe A#4          62 - Kalimba A5
+17 - MSnr-shell 2        40 - English Horn C5   63 - Orch Hit G#6
+18 - Cello E4            41 - PalmMuted Gtr D4  64 - Harp D#4
+19 - Cello-F#2           42 - Shamisen F#5      65 - Metronome Bell(L)
+20 - Steel Gtr B4        43 - Koto F#5          66 - Trumpet C4
+21 - Clean F50           44 - Steel Drum C6
+22 - SynthVz F#5         45 - Power Kick 3
+</pre>
+
+<pre>
+<b>FM patches</b>
+
+ v0w8n50p0l1 : w8=FM p0=BRASS1
+
+ 0 - BRASS 1      16 - E.ORGAN 1     32 - PIANO 4       48 - PIPES 2
+ 1 - BRASS 2      17 - PIPES 1       33 - PIANO 5       49 - PIPES 3
+ 2 - BRASS 3      18 - HARPSICH 1    34 - E.PIANO 2     50 - PIPES 4
+ 3 - STRINGS 1    19 - CLAV 1        35 - E.PIANO 3     51 - CALIOPE
+ 4 - STRINGS 2    20 - VIBE 1        36 - E.PIANO 4     52 - ACCORDION
+ 5 - STRINGS 3    21 - MARIMBA       37 - PIANO 5THS    53 - SITAR
+ 6 - ORCHESTRA    22 - KOTO          38 - CELESTE       54 - GUITAR 3
+ 7 - PIANO 1      23 - FLUTE 1       39 - TOY PIANO     55 - GUITAR 4
+ 8 - PIANO 2      24 - ORCH-CHIME    40 - HARPSICH 2    56 - GUITAR 5
+ 9 - PIANO 3      25 - TUB BELLS     41 - HARPSICH 3    57 - GUITAR 6
+10 - E.PIANO 1    26 - STEEL DRUM    42 - CLAV 2        58 - LUTE
+11 - GUITAR 1     27 - TIMPANI       43 - CLAV 3        59 - BANJO
+12 - GUITAR 2     28 - REFS WHISL    44 - E.ORGAN 2     60 - HARP 1
+13 - SYN-LEAD 1   29 - VOICE 1       45 - E.ORGAN 3     61 - HARP 2
+14 - BASS 1       30 - TRAIN         46 - E.ORGAN 4     62 - BASS 3
+15 - BASS 2       31 - TAKE OFF      47 - E.ORGAN 5     63 - BASS 4
+
+64 - PICCOLO      80 - RECORDER      96 - SYN-LEAD 2    112 - HARP-FLUTE
+65 - FLUTE 2      81 - HARMONICA1    97 - SYN-LEAD 3    113 - BELL-FLUTE
+66 - OBOE         82 - HRMNCA2 BC    98 - SYN-LEAD 4    114 - E.P-BRS BC
+67 - CLARINET     83 - VOICE 2       99 - SYN-LEAD 5    115 - T.BL-EXPA
+68 - SAX BC       84 - VOICE 3       100 - SYN-CLAV 1   116 - CHIME-STRG
+69 - BASSOON      85 - GLOKENSPL     101 - SYN-CLAV 2   117 - B.DRM-SNAR
+70 - STRINGS 4    86 - VIBE 2        102 - SYN-CLAV 3   118 - SHIMMER
+71 - STRINGS 5    87 - XYLOPHONE     103 - SYN-PIANO    119 - EVOLUTION
+72 - STRINGS 6    88 - CHIMES        104 - SYNBRASS 1   120 - WATER GDN
+73 - STRINGS 7    89 - GONG 1        105 - SYNBRASS 2   121 - WASP STING
+74 - STRINGS 8    90 - GONG 2        106 - SYNORGAN 1   122 - LASER GUN
+75 - BRASS 4      91 - BELLS         107 - SYNORGAN 2   123 - DESCENT
+76 - BRASS 5      92 - COW BELL      108 - SYN-VOX      124 - OCTAVE WAR
+77 - BRASS 6 BC   93 - BLOCK         109 - SYN-ORCH     125 - GRAND PRIX
+78 - BRASS 7      94 - FLEXATONE     110 - SYN-BASS 1   126 - ST.HELENS
+79 - BRASS 8      95 - LOG DRUM      111 - SYN-BASS 2   127 - EXPLOSION
+
+128 - FLUTE 1 
+129 - HARPSICH 1 
+130 - STRG ENS 1 
+131 - BRIGHT BOW 
+132 - BRASSHORNS 
+133 - BR TRUMPET 
+134 - MARIMBA 
+135 - E.PIANO 1 
+136 - PIANO 1 
+137 - PIPES 1 
+138 - E.ORGAN 1 
+139 - E.BASS 1 
+140 - CLAV 1 
+141 - HARMONICA1 
+142 - JAZZ GUIT1 
+143 - PRC SYNTH1 
+144 - SAX BC 
+145 - FRETLESS 1 
+146 - HARP 1 
+147 - TIMPANI 
+148 - HEAVYMETAL 
+149 - STEEL DRUM 
+150 - SYN-LEAD 1 
+151 - VOICES BC 
+152 - CLAV ENS 
+153 - LASERSWEEP 
+154 - TUB ERUPT 
+155 - GRAND PRIX 
+156 - REFS WHISL 
+157 - TRAIN 
+158 - BRASS S H 
+159 - TAKE OFF 
+160 - PIANO 2 
+161 - E.GRAND 1 
+162 - E.GRAND 2 
+163 - HONKY TONK 
+164 - E.PIANO 2 
+165 - E.PIANO 3 
+166 - E.PIANO 4 
+167 - CELESTE 
+168 - FUNK CLAV 
+169 - CLAV ENS 2 
+170 - PERC CLAV 
+171 - HARPSICH 2 
+172 - E.ORGAN 2 
+173 - E.ORGAN 3 
+174 - 60-S ORGAN 
+175 - PIPES 2 
+176 - PIPES 3 
+177 - CALIOPE 
+178 - ACCORDION 
+179 - TOY PIANO 
+180 - SITAR 
+181 - KOTO 
+182 - JAZZ GUIT2 
+183 - SPANISHGTR 
+184 - FOLK GUIT 
+185 - LUTE 
+186 - BANJO 
+187 - CLAS.GUIT 
+188 - HARP 2 
+189 - E.BASS 2 
+190 - FRETLESS 2 
+191 - PLUCK BASS 
+192 - PICCOLO 
+193 - FLUTE 2 
+194 - OBOE 
+195 - CLARINET 
+196 - BASSOON 
+197 - PAN FLUTE 
+198 - LEAD BRASS 
+199 - HORNS 
+200 - SOLO TBONE 
+201 - BRASS BC 
+202 - BRASS 5THS 
+203 - SYNTHBRASS 
+204 - STRG QRT 1 
+205 - STRG ENS 2 
+206 - VIOLA SECN 
+207 - STRGS LOW 
+208 - HIGH STRGS 
+209 - PIZZ STGS 
+210 - STG CRSNDO 
+211 - STGS 5THS 
+212 - BELLS 
+213 - TUB BELLS 
+214 - RECORDERS 
+215 - CHIMES 
+216 - VOICES 
+217 - XYLOPHONE 
+218 - COWBELL 
+219 - WOOD BLOCK 
+220 - FLEXATONE 
+221 - LOG DRUM 
+222 - GLOKENSPL 
+223 - VIBE 
+224 - CLAV-E.PNO 
+225 - PERC BRASS 
+226 - PRC SYNTH2 
+227 - HARPSI-STG 
+228 - CHIME-STRG 
+229 - HARP-FLUTE 
+230 - BELL-FLUTE 
+231 - STRG-CHIME 
+232 - STRG-MARIM 
+233 - STRG-PIZZT 
+234 - ORCHESTRA 
+235 - LEAD GUITR 
+236 - PIANO-BRS 
+237 - BRS-CHIME 
+238 - B.DRM-SNAR 
+239 - E.P-BRS BC 
+240 - ORG-BRS BC 
+241 - CLV-BRS BC 
+242 - WHISTLES 
+243 - FILTER SWP 
+244 - FUNKY RISE 
+245 - WILD BOAR 
+246 - SHIMMER 
+247 - EVOLUTION 
+248 - WATER GDN 
+249 - WASP STING 
+250 - MULTI NOTE 
+251 - DESCENT 
+252 - OCTAVE WAR 
+253 - ..GOTCHA.. 
+254 - ST.HELENS 
+255 - EXPLOSION 
+256 - PIANO 1 
+257 - PIANO 2 
+258 - PIANO 3 
+259 - HONKEY.P.F 
+260 - PLEPIARD 
+261 - PIANO-CP 
+262 - E.PIANO 1 
+263 - E.PIANO 2 
+264 - E.PIANO 3 
+265 - E.PIANO 4 
+266 - CEMBALO 1 
+267 - CEMBALO 2 
+268 - E-CEMBALO 
+269 - CLAVI. 1 
+270 - CLAVI. 2 
+271 - CLAVI. 3 
+272 - CLAVI. 4 
+273 - CELESTE 1 
+274 - CELESTE 2 
+275 - AC.GUITAR1 
+276 - AC.GUITAR2 
+277 - AC.GUITAR3 
+278 - AC.GUITAR4 
+279 - 12S.GUITAR 
+280 - E.GUITAR 1 
+281 - E.GUITAR 2 
+282 - E.GUITAR 3 
+283 - E.GUITAR 4 
+284 - E.GUITAR 5 
+285 - E.BASS 1 
+286 - E.BASS 2 
+287 - E.BASS 3 
+288 - E.BASS 4 
+289 - E.BASS 5 
+290 - SYN.BASS 1 
+291 - SYN.BASS 2 
+292 - SYN.BASS 3 
+293 - SYN.BASS 4 
+294 - SYN.BASS 5 
+295 - SYN.BASS 6 
+296 - W.BASS 1 
+297 - W.BASS 2 
+298 - W.BASS 3 
+299 - W.BASS 4 
+300 - ZITAR 
+301 - ZIMBALONE 
+302 - BAMBOO MAR 
+303 - KARIMBA 
+304 - MANDOLIN 1 
+305 - MANDOLIN 2 
+306 - SITAR 
+307 - BANJO 1 
+308 - BANJO 2 
+309 - CHALANGO 
+310 - SHIYAMISEN 
+311 - BIWA 
+312 - VIB. 1 
+313 - VIB. 2 
+314 - GLOCKEN 1 
+315 - GLOCKEN 2 
+316 - XYLOPHONE 
+317 - MARIMBA 
+318 - HANDBELL 1 
+319 - HANDBELL 2 
+320 - PICCOLO 1 
+321 - PICCOLO 2 
+322 - FLUTE 1 
+323 - FLUTE 2 
+324 - FLUTE 3 
+325 - ALTO FLUTE 
+326 - BASS FLUTE 
+327 - OBOE 1 
+328 - OBOE 2 
+329 - ENG.HORN 
+330 - CLARINET 1 
+331 - CLARINET 2 
+332 - CLARINET 3 
+333 - BASS CLA. 
+334 - BASSOON 1 
+335 - BASSOON 2 
+336 - BASSOON 3 
+337 - SAXOPHONE1 
+338 - SAXOPHONE2 
+339 - SAXOPHONE3 
+340 - SAXOPHONE4 
+341 - HORN 1 
+342 - HORN 2 
+343 - HORN 3 
+344 - HORN 4 
+345 - HORN 5 
+346 - TRUMPET 1 
+347 - TRUMPET 2 
+348 - TRUMPET 3 
+349 - TRUMPET 4 
+350 - TRUMPET 5 
+351 - TRUMPET 6 
+352 - TRUMPET 7 
+353 - P.TRUMPET 
+354 - TPT.MUTE 1 
+355 - TPT.MUTE 2 
+356 - FLUGELHORN 
+357 - TROMBONE 1 
+358 - TROMBONE 2 
+359 - TROMBONE 3 
+360 - TRB.MUTE 1 
+361 - TRB.MUTE 2 
+362 - TUBA 
+363 - RECORDER 
+364 - T.RECORDER 
+365 - OCARINA 
+366 - QUENA 
+367 - BAMBOO FL. 
+368 - PANFLUTE1 
+369 - PANFLUTE2 
+370 - BAGPIPE 
+371 - HARMONICA1 
+372 - HARMONICA2 
+373 - ACCORDION1 
+374 - ACCORDION2 
+375 - BRASS EN.1 
+376 - BRASS EN.2 
+377 - BRASS EN.3 
+378 - BRASS EN.4 
+379 - BRASS EN.5 
+380 - BRASS EN.6 
+381 - BRASS EN.7 
+382 - WIND ENS.1 
+383 - WIND ENS.2 
+384 - VIOLIN 1 
+385 - VIOLIN 2 
+386 - VIOLIN 3 
+387 - VIOLIN 4 
+388 - CELLO 1 
+389 - CELLO 2 
+390 - CONTRABASS 
+391 - STRINGS 1 
+392 - STRINGS 2 
+393 - STRINGS 3 
+394 - STRINGS 4 
+395 - STRINGS 5 
+396 - STRINGS 6 
+397 - STRINGS 7 
+398 - STRINGS 8 
+399 - STRINGS 9 
+400 - STRINGS 10 
+401 - STRINGS 11 
+402 - STR.PIZZ.1 
+403 - STR.PIZZ.2 
+404 - STR.PIZZ.3 
+405 - STR.PIZZ.4 
+406 - M. VOICE 1 
+407 - M. VOICE 2 
+408 - M. VOICE 3 
+409 - M. VOICE 4 
+410 - M. VOICE 5 
+411 - M. VOICE 6 
+412 - F. VOICE 1 
+413 - F. VOICE 2 
+414 - F. VOICE 3 
+415 - F. VOICE 4 
+416 - M.CHORUS 1 
+417 - M.CHORUS 2 
+418 - M.CHORUS 3 
+419 - M.CHORUS 4 
+420 - F.CHORUS 1 
+421 - F.CHORUS 2 
+422 - F.CHORUS 3 
+423 - CHORUS 1 
+424 - CHORUS 2 
+425 - CHORUS 3 
+426 - CHORUS 4 
+427 - CHORUS 5 
+428 - CHORUS 6 
+429 - VOC.VOICE 
+430 - WHISTLE 1 
+431 - WHISTLE 2 
+432 - E. ORGAN 1 
+433 - E. ORGAN 2 
+434 - E. ORGAN 3 
+435 - E. ORGAN 4 
+436 - E. ORGAN 5 
+437 - E. ORGAN 6 
+438 - E. ORGAN 7 
+439 - E. ORGAN 8 
+440 - E. ORGAN 9 
+441 - E. ORGAN10 
+442 - BARREL ORG 
+443 - PIPE ORG.1 
+444 - PIPE ORG.2 
+445 - PIPE ORG.3 
+446 - PIPE ORG.4 
+447 - PIPE ORG.5 
+448 - DRUMS 
+449 - SNARE DR.1 
+450 - SNARE DR.2 
+451 - TOM-TOM 1 
+452 - TOM-TOM 2 
+453 - BASS DR. 1 
+454 - BASS DR. 2 
+455 - SIZ. CYMB. 
+456 - HI-HAT 
+457 - E. DRUMS 1 
+458 - E. DRUMS 2 
+459 - E. DRUMS 3 
+460 - E. DRUMS 4 
+461 - E. DRUMS 5 
+462 - TIMBALES 1 
+463 - TIMBALES 2 
+464 - CONGAS 1 
+465 - CONGAS 2 
+466 - JPN.DRUM 1 
+467 - JPN.DRUM 2 
+468 - JPN.DRUM 3 
+469 - JPN.DRUM 4 
+470 - QUIEKER 
+471 - TIMPANI 1 
+472 - TIMPANI 2 
+473 - HAND CLAP1 
+474 - HAND CLAP2 
+475 - TAP SLAP 
+476 - W. BLOCK 1 
+477 - W. BLOCK 2 
+478 - CASTANET 1 
+479 - CASTANET 2 
+480 - CLAVES 
+481 - GUIRO 
+482 - MARACAS 
+483 - KABASA 
+484 - TAMBLN. 1 
+485 - TAMBLN. 2 
+486 - SAMBA WHIS 
+487 - TRIANGLE 1 
+488 - TRIANGLE 2 
+489 - BELL TREE 
+490 - SMALL BELL 
+491 - AGOGO 
+492 - GONG 
+493 - COW BELL 1 
+494 - COW BELL 2 
+495 - COW BELL 3 
+496 - WIND BELL1 
+497 - WIND BELL2 
+498 - STEEL DRUM 
+499 - GLASSHARP1 
+500 - GLASSHARP2 
+501 - REV.CYMB 1 
+502 - REV.CYMB 2 
+503 - SYN.PERC.1 
+504 - SYN.PERC.2 
+505 - SYN.PERC.3 
+506 - SYN.PERC.4 
+507 - SYN.PERC.5 
+508 - SYN.PERC.6 
+509 - SYN.PERC.7 
+510 - SYN.PERC.8 
+511 - SYN.PERC.9 
+512 - HEAVY RAIN 
+513 - THUNDER 
+514 - STORM 1 
+515 - STORM 2 
+516 - WATERDROP 
+517 - BUBBLES 
+518 - WAVE 1 
+519 - WAVE 2 
+520 - WAVE 3 
+521 - WAVE 4 
+522 - RUMB.EARTH 
+523 - EXPLOSION1 
+524 - EXPLOSION2 
+525 - MAC.GUN 1 
+526 - MAC.GUN 2 
+527 - MOBILE 1 
+528 - MOBILE 2 
+529 - KLAXON 
+530 - MOTERCYCLE 
+531 - AMBULANCE 
+532 - PATROL CAR 
+533 - SIREN 
+534 - PLAIN 1 
+535 - PLAIN 2 
+536 - HELICOPTER 
+537 - LOCOMOTIVE 
+538 - SHIP...... 
+539 - TEL CALL 1 
+540 - TEL CALL 2 
+541 - BELL...... 
+542 - PI.PO.PA. 
+543 - ALARM! 
+544 - DOG 
+545 - BABY CAT 
+546 - INSECTS 1 
+547 - INSECTS 2 
+548 - INSECTS 3 
+549 - BIRD 1 
+550 - BIRD 2 
+551 - BIRD 3 
+552 - BIRD 4 
+553 - HEART BEAT 
+554 - TYPEWRITER 
+555 - CLOSING 
+556 - FACTORY 
+557 - ROBOT 
+558 - TEMP.BELL1 
+559 - TEMP.BELL2 
+560 - CHURCHBELL 
+561 - BIG BEN 
+562 - IMAGE 1 
+563 - IMAGE 2 
+564 - IMAGE 3 
+565 - IMAGE 4 
+566 - IMAGE 5 
+567 - IMAGE 6 
+568 - IMAGE 7 
+569 - IMAGE 8 
+570 - IMAGE 9 
+571 - IMAGE 10 
+572 - IMAGE 11 
+573 - IMAGE 12 
+574 - IMAGE 13 
+575 - IMAGE 14 
+576 - SYN.STR. 1 
+577 - SYN.STR. 2 
+578 - SYN.STR. 3 
+579 - SYN.STR. 4 
+580 - SYN.STR. 5 
+581 - SYN.STR. 6 
+582 - SYN.STR. 7 
+583 - SYN.STR. 8 
+584 - SYN.STR. 9 
+585 - SYN.STR.10 
+586 - SYN.STR.11 
+587 - SYN.STR.12 
+588 - SYN.STR.13 
+589 - SYN.BRA. 1 
+590 - SYN.BRA. 2 
+591 - SYN.BRA. 3 
+592 - SYN.BRA. 4 
+593 - SYN.BRA. 5 
+594 - SYN.BRA. 6 
+595 - SYN.BRA. 7 
+596 - SYN.BRA. 8 
+597 - SYN.BRA. 9 
+598 - SYN.BRA.10 
+599 - SYN.BRA.11 
+600 - SYN.BRA.12 
+601 - SYN.BRA.13 
+602 - SYN.LEAD 1 
+603 - SYN.LEAD 2 
+604 - SYN.LEAD 3 
+605 - SYN.LEAD 4 
+606 - SYN.LEAD 5 
+607 - SYN.LEAD 6 
+608 - SYN.BASS 7 
+609 - SYN.BASS 8 
+610 - SYN.BASS 9 
+611 - SYN.BASS10 
+612 - SYN. VOX 1 
+613 - SYN. VOX 2 
+614 - SYN. VOX 3 
+615 - SYN. VOX 4 
+616 - SYN. VOX 5 
+617 - SYN. VOX 6 
+618 - SYN.ORG. 1 
+619 - SYN.ORG. 2 
+620 - SYN.ORG. 3 
+621 - SYN.ORG. 4 
+622 - SYN.ORG. 5 
+623 - SYN.ORG. 6 
+624 - SYN.MARIM. 
+625 - SYN.CLAVI. 
+626 - SYN.HARMO. 
+627 - SYN.ORCHE. 
+628 - SYN.CHIM.1 
+629 - SYN.CHIM.2 
+630 - SYN.S.DRUM 
+631 - SYN.RECOR. 
+632 - SYN.GUITAR 
+633 - SYN.FLUTE 
+634 - SYN.XYLOPH 
+635 - SYN.SITAR 
+636 - SYN.GLOC.1 
+637 - SYN.GLOC.2 
+638 - SYN.GLOC.3 
+639 - SYN.GLOC.4 
+640 - Chorus PNO 
+641 - Tight PNO 
+642 - Rock PNO 
+643 - School PNO 
+644 - Wire PNO 
+645 - <Pop> Epno 
+646 - <Brr> Epno 
+647 - <Wap> Epno 
+648 - <Puf> Orgn 
+649 - <Tap> Orgn 
+650 - <Big> Orgn 
+651 - Magicorgan 
+652 - Bigpipes 
+653 - <FM>alog 1 
+654 - <FM>alog 2 
+655 - <FM>alog 3 
+656 - <Pluk> 1 
+657 - <Pluk> 2 
+658 - <Pluk> 3 
+659 - Hav-a-Clav 
+660 - Magiklav 
+661 - Tenor vox 
+662 - Lady vox 
+663 - Vocoda vox 
+664 - Wahhh vox 
+665 - Elec Brass 
+666 - Elec Viola 
+667 - Violin 
+668 - Hall Orch 
+669 - 1 fifth up 
+670 - Magiglokkk 
+671 - Magivybe 
+672 - Fingapikka 
+673 - Leadapikka 
+674 - Steelypika 
+675 - Classipika 
+676 - Harpsipika 
+677 - Pan floot 
+678 - Huffsynth 
+679 - Trompe 
+680 - Englishorn 
+681 - Harmosynth 
+682 - <FM>alog 4 
+683 - Backtalk 
+684 - Newtrumpet 
+685 - Elec comb 
+686 - Touchbend 
+687 - Bell<Wahh> 
+688 - Bowed bell 
+689 - Ting voice 
+690 - Cymbal 
+691 - Rubbergong 
+692 - Long gong 
+693 - Smooh bass 
+694 - Bowed bass 
+695 - Oww bass 
+696 - Bass bass 
+697 - Flunk bass 
+698 - Chain saw 
+699 - Tambourine 
+700 - Thunderon 
+701 - <<Smash>> 
+702 - Handrum 
+703 - Congadrum 
+704 - PickGuitar 
+705 - SongFlute 
+706 - NewCeleste 
+707 - PianoBells 
+708 - MellowHorn 
+709 - MilkyWays 
+710 - Xylo-Brass 
+711 - Rosin-Bows 
+712 - WireStrung 
+713 - DblTrumpet 
+714 - FullTines 
+715 - Harpsi-Box 
+716 - }HardBass{ 
+717 - PianoForte 
+718 - Good-Vibes 
+719 - Analog-DX7 
+720 - SpitFlute 
+721 - St.Elmo's 
+722 - Carolines 
+723 - HarpStrum 
+724 - ClaviPluck 
+725 - MalletHorn 
+726 - RaspySax 
+727 - HollowHits 
+728 - Hard~Tines 
+729 - FunkyPluck 
+730 - Whap-Synth 
+731 - SoloTrumpt 
+732 - ReverbStrg 
+733 - TouchOrg-1 
+734 - TouchOrg-2 
+735 - FM-Growth 
+736 - ClaviStuff 
+737 - EchoMallet 
+738 - SteelCans 
+739 - TackyPiano 
+740 - PlukGuitar 
+741 - HighStrung 
+742 - ChimeTines 
+743 - SoftFrench 
+744 - CongaClave 
+745 - Clave-Drum 
+746 - WoodSimmon 
+747 - CastePiano 
+748 - PianoFlute 
+749 - NeWaveOrgn 
+750 - ChorusRing 
+751 - EmerSynth 
+752 - SoftPiano 
+753 - Tine~Brass 
+754 - Orgn~Brass 
+755 - BCTrumpet 
+756 - Xylophonk 
+757 - SassyBrass 
+758 - ComicSiren 
+759 - Bugs&Birds 
+760 - RainDrops 
+761 - Speak-One 
+762 - Speak-Two 
+763 - Speak-Thre 
+764 - Speak-Four 
+765 - What?One? 
+766 - FM~Teapot 
+767 - TapeRewind 
+768 - DX-PIANO 
+769 - DX-CP 
+770 - METAL PNO. 
+771 - CEMBABELL 
+772 - CEMBALINE 
+773 - CLATRON 
+774 - GLAVINET 
+775 - ORGAN.B-52 
+776 - ORGAN B-29 
+777 - ORGATORON 
+778 - SYNTH.BELL 
+779 - GLASSPHONE 
+780 - METAL-GLOC 
+781 - SYN.HARP 
+782 - GLOCK-BOX 
+783 - SYNTH CLIC 
+784 - JUICE HARP 
+785 - BELLCHIME 
+786 - THUMHAPICA 
+787 - XYLO-HARP 
+788 - METARIMBA 
+789 - DIST.GUIT 
+790 - 8VER-GUIT 
+791 - CLAGUITAR 
+792 - SAMP.CONGA 
+793 - MARIM-BASS 
+794 - PICKIN-W.B 
+795 - METALBASS 
+796 - IRON BASS 
+797 - CLIC-BASS 
+798 - SYN.BASS A 
+799 - SYN.BASS B 
+800 - ANDESFLUTE 
+801 - HOLE-FLUTE 
+802 - WIND-FLUTE 
+803 - BAMBOO CLA 
+804 - WIND-BRASS 
+805 - HARD BRASS 
+806 - BUSSY BRAS 
+807 - BRASTATION 
+808 - SOFT BRASS 
+809 - TRP.-TRB. 
+810 - SOFT HORN 
+811 - SYN.HORN 
+812 - SYNTHPHONE 
+813 - SOLO TROMB 
+814 - DX-TROMBA 
+815 - D.QUART-ST 
+816 - A-TOUCH-ST 
+817 - SOFT STRGS 
+818 - NORMAL STG 
+819 - ANALOG-STG 
+820 - ORCH-STRGS 
+821 - LOWERSTRGS 
+822 - SOFT CHOIR 
+823 - WHISP-CHOR 
+824 - SOLO SYNTH 
+825 - IRON TIMPA 
+826 - METAL TOM 
+827 - NOISY GLAS 
+828 - SNARE DRUM 
+829 - GATE REVER 
+830 - UP UP AWAY 
+831 - ANGEL FALL 
+832 - {KC}Piano\ 
+833 - ElecGrand\ 
+834 - EP DlyStr\ 
+835 - VicRhodes\ 
+836 - KC Tynot \ 
+837 - KC Ovrkil\ 
+838 - EpSqurMel\ 
+839 - WurliChrs\ 
+840 - EP.Dstrt \ 
+841 - BsEPiano8\ 
+842 - EP.SawBel\ 
+843 - EpDstrt *\ 
+844 - KC EpHwrd\ 
+845 - WoodBalls\ 
+846 - XyloHrdWd\ 
+847 - TorimLong\ 
+848 - Grinder 4\ 
+849 - Koto\\\\\1 
+850 - SoftGuitr\ 
+851 - NylonPck3\ 
+852 - NylonBel3\ 
+853 - Sitar KC \ 
+854 - Chroma \ 
+855 - Clavi 1 \ 
+856 - SqrThang2\ 
+857 - KillrD's5\ 
+858 - KilerD's2\ 
+859 - Bello 3~ \ 
+860 - Belashun \ 
+861 - RodeBell \ 
+862 - ChinezBls\ 
+863 - ElecBass*\ 
+864 - SoftEgStr\ 
+865 - Anna Str \ 
+866 - Xylo Str1\ 
+867 - Digi Pad \ 
+868 - AcSweep 2\ 
+869 - PedSweep2\ 
+870 - StrBrsPed\ 
+871 - TytPhaz//\ 
+872 - ObieBrs5/\ 
+873 - Anna Fat \ 
+874 - SaintWho \ 
+875 - Anna Hit1\ 
+876 - Anna Hit2\ 
+877 - SmoothSqr\ 
+878 - Sacuru \ 
+879 - SwishBell\ 
+880 - Anna Xylo\ 
+881 - AcSmack 2\ 
+882 - AnnaNasty\ 
+883 - SubHarmLd\ 
+884 - Bel Lead \ 
+885 - LeadEcho1\ 
+886 - HrmnicaLd\ 
+887 - PennyFlut\ 
+888 - KC FLute4\ 
+889 - Dbl Reed \ 
+890 - TenrReed1\ 
+891 - 3WySplt 1\ 
+892 - EchoEcho1\ 
+893 - EchoEcho2\ 
+894 - TapeRewnd2 
+895 - A - -{440} 
+896 - Soft Spot\ 
+897 - Nu Island\ 
+898 - NuIsland2\ 
+899 - MarimBahh\ 
+900 - SftRimPlk\ 
+901 - RodeRasp1\ 
+902 - E.Clique1\ 
+903 - E.Clique2\ 
+904 - E.Clique3\ 
+905 - E.Clique4\ 
+906 - BassXylo1\ 
+907 - AcustcSt1\ 
+908 - AcustcSt2\ 
+909 - AcustcSt3\ 
+910 - NoBoKuto1\ 
+911 - MutronClv\ 
+912 - Clavinet2\ 
+913 - ClavSwep1\ 
+914 - ClavSwep2\ 
+915 - Screamer1\ 
+916 - LdSubHrm2\ 
+917 - BsE.Tack5\ 
+918 - BsE.Tack7\ 
+919 - NuMdlXprs\ 
+920 - DigiXylo1\ 
+921 - Jamaica 2\ 
+922 - NewCelest\ 
+923 - Glocker 1\ 
+924 - MuzacBox \ 
+925 - RodeBell2\ 
+926 - XprmntlBel 
+927 - Long Gong\ 
+928 - NogoKoto1\ 
+929 - DigiTar 1\ 
+930 - SoftElPno\ 
+931 - Fuhppps!2\ 
+932 - DblReed 2\ 
+933 - Flutos 5\ 
+934 - OB Geni 2\ 
+935 - DX Additv\ 
+936 - ChrchMows\ 
+937 - Chellezt1\ 
+938 - AgiFunki1\ 
+939 - AgiStop 1\ 
+940 - StrEnsmbl\ 
+941 - StrPd7%%%\ 
+942 - StrSweep \ 
+943 - SmrNParee\ 
+944 - Digi Pad \ 
+945 - Pad 16 Ft\ 
+946 - Brs 16Ft3\ 
+947 - Brs 16Ft4\ 
+948 - Trompet 1\ 
+949 - Ensemble2\ 
+950 - Trombone2\ 
+951 - FM Nazel1\ 
+952 - PdlSweep1\ 
+953 - PdlSweep2\ 
+954 - BetMeHrDr2 
+955 - BetMeHrDr3 
+956 - DesrtSean\ 
+957 - Vrbration2 
+958 - DropVolum\ 
+959 - LaserFall\ 
+960 - STARTXXX 
+961 - O-F-SEQ 1 
+962 - O-F-SEQ 2 
+963 - P.EGVOICE1 
+964 - P.EGVOICE2 
+965 - P.EGBRASS1 
+966 - P.EGBRASS2 
+967 - CHINA S&H1 
+968 - CHINA S&H2 
+969 - BRASZANCE1 
+970 - BRASZANCE2 
+971 - MILTONE 
+972 - REFLECTION 
+973 - FANTASY 
+974 - PACHICHORD 
+975 - NO.40 
+976 - EP-UNIT 
+977 - BRASS-UNIT 
+978 - GRACE STRG 
+979 - GRACEVOICE 
+980 - SANCTUS 
+981 - DIGI WOW 
+982 - DIGI LOG 
+983 - BALI GONG 
+984 - KUTABEACH 
+985 - MECHA KOTO 
+986 - MICHELLE 
+987 - ANTONIO 
+988 - LONG HAIR 
+989 - SUS4 STRG. 
+990 - SPACE-TRIP 
+991 - SPACECHIME 
+992 - OPENING 
+993 - HITPAD 1 
+994 - HITPAD 2 
+995 - CLICK BASS 
+996 - SLAP BASS 
+997 - MUTE BASS 
+998 - PICKED GT. 
+999 - MUTELUTE 
+1000 - THE DUCK 
+1001 - BOULOUGNE 
+1002 - VIBE-COIN 
+1003 - AIR-XYL. 
+1004 - PEKINGREED 
+1005 - CROSSING 
+1006 - DUTWAH 
+1007 - REGGAE 
+1008 - WOOD GONG1 
+1009 - WOOD GONG2 
+1010 - WOOD GONG3 
+1011 - HEXAGON 1 
+1012 - HEXAGON 2 
+1013 - HEXAGON 3 
+1014 - HEXA-B-DR. 
+1015 - HEXA-GLASS 
+1016 - GLOW BRASS 
+1017 - OLDIES 
+1018 - MUSIC BOX 
+1019 - EG BIAS 
+1020 - NERVYHORNS 
+1021 - HAMMER 
+1022 - TEQUILA 
+1023 - STARTREK 
+</pre>
+</div>
+
+<br>
+<br>
+
+</body>
+
+</html>

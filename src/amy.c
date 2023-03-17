@@ -17,6 +17,51 @@ extern TaskHandle_t amy_render_handle[AMY_CORES]; // one per core
 #endif
 
 
+// JOE
+int amy_capture_flag = 0;      // boolean : do we capture?
+int amy_capture_capacity = BLOCK_COUNT * BLOCK_SIZE + 1;  // in samples : maximum number of samples to capture
+int amy_capture_max = BLOCK_SIZE;
+int amy_capture_level = 0;     // in units of samples : current number of samples captured
+int amy_capture_full = 0;      // boolean : when we fill the capture, this gets set
+int16_t amy_capture_buffer[BLOCK_COUNT * BLOCK_SIZE];
+
+void amy_enable_capture(int flag, int max) {
+    // here be race conditions i fear
+    if (flag) {
+        if (max < 0) max = 0;
+        if (max >= amy_capture_capacity) max = amy_capture_capacity;
+        amy_capture_max = max;
+        amy_capture_level = 0;
+    }
+    amy_capture_flag = flag;
+}
+
+int amy_full(void) {
+    return amy_capture_flag;
+}
+
+int amy_trim(int length) {
+    if (amy_full()) {
+        return -1;
+    }
+    amy_capture_level = length;
+    return 0;
+}
+
+int amy_frames(void) {
+    return amy_capture_level;
+}
+
+void amy_set_frames(int length) {
+    amy_capture_level = length;
+}
+
+int16_t *amy_captured(void) {
+    return amy_capture_buffer;
+}
+
+// END
+
 // Global state 
 struct state global;
 // set of deltas for the fifo to be played
@@ -321,41 +366,103 @@ int8_t oscs_init() {
 }
 
 
-void show_debug(uint8_t type) { 
+
+void _show_debug(uint8_t type, FILE *out) {
     if(type>1) {
         struct delta * ptr = global.event_start;
         uint16_t q = global.event_qsize;
         if(q > 25) q = 25;
+        fprintf(out, "{\"queue\":[");
         for(uint16_t i=0;i<q;i++) {
-            fprintf(stderr,"%d time %u osc %d param %d - %f %d\n", i, ptr->time, ptr->osc, ptr->param, *(float *)&ptr->data, *(int *)&ptr->data);
+            char c = ',';
+            if (i == q-1) c = ']';
+            fprintf(out, "{\"time\":%u, \"osc\":%d, \"param\":%d, [%f, %d]}%c\n",
+                ptr->time,
+                ptr->osc,
+                ptr->param,
+                *(float *)&ptr->data,
+                *(int *)&ptr->data,
+                c);
             ptr = ptr->next;
         }
     }
     if(type>2) {
         // print out all the osc data
-        //printf("global: filter %f resonance %f volume %f status %d\n", global.filter_freq, global.resonance, global.volume, global.status);
-        fprintf(stderr,"global: volume %f eq: %f %f %f \n", global.volume, global.eq[0], global.eq[1], global.eq[2]);
-        //printf("mod global: filter %f resonance %f\n", mglobal.filter_freq, mglobal.resonance);
+        char c = ',';
+        fprintf(out,",\"volume\":%f, \"eq\":[%f, %f, %f],\n",
+            global.volume,
+            global.eq[0],
+            global.eq[1],
+            global.eq[2]);
+        fprintf(out, "\"bank\":[\n");
         for(uint8_t i=0;i<OSCS;i++) {
-            fprintf(stderr,"osc %d: status %d amp %f wave %d freq %f duty %f mod_target %d mod source %d velocity %f filter_freq %f ratio %f feedback %f resonance %f step %f algo %d source %d,%d,%d,%d,%d,%d  \n",
-                i, synth[i].status, synth[i].amp, synth[i].wave, synth[i].freq, synth[i].duty, synth[i].mod_target, synth[i].mod_source, 
-                synth[i].velocity, synth[i].filter_freq, synth[i].ratio, synth[i].feedback, synth[i].resonance, synth[i].step, synth[i].algorithm,
-                synth[i].algo_source[0], synth[i].algo_source[1], synth[i].algo_source[2], synth[i].algo_source[3], synth[i].algo_source[4], synth[i].algo_source[5] );
+            if (i == OSCS-1) c = ']';
+            fprintf(out,"{\"osc\":%d, \"status\":%d, \"amp\":%f, \"wave\":%d, \"freq\":%f, \"duty\":%f, \"mod_target\":%d \"mod_source\":%d, \"velocity\":%f, \"filter_freq\":%f, \"ratio\":%f, \"feedback\":%f, \"resonance\":%f, \"step\":%f, \"algo\":%d, \"source\":[%d,%d,%d,%d,%d,%d]}%c\n",
+                i,
+                synth[i].status,
+                synth[i].amp,
+                synth[i].wave,
+                synth[i].freq,
+                synth[i].duty,
+
+                synth[i].mod_target,
+                synth[i].mod_source,
+                synth[i].velocity,
+                synth[i].filter_freq,
+                synth[i].ratio,
+                synth[i].feedback,
+                synth[i].resonance,
+
+                synth[i].step,
+                synth[i].algorithm,
+                synth[i].algo_source[0],
+                synth[i].algo_source[1],
+                synth[i].algo_source[2],
+                synth[i].algo_source[3],
+                synth[i].algo_source[4],
+                synth[i].algo_source[5],
+                c);
             if(type>3) { 
+                fprintf(out, "[");
                 for(uint8_t j=0;j<MAX_BREAKPOINT_SETS;j++) {
-                    fprintf(stderr,"bp%d (target %d): ", j, synth[i].breakpoint_target[j]);
+                    fprintf(out,"{\"bp%d\":%d, [", j, synth[i].breakpoint_target[j]);
                     for(uint8_t k=0;k<MAX_BREAKPOINTS;k++) {
-                        fprintf(stderr,"%d: %f ", synth[i].breakpoint_times[j][k], synth[i].breakpoint_values[j][k]);
+                        fprintf(out,"[%d, %f],", synth[i].breakpoint_times[j][k], synth[i].breakpoint_values[j][k]);
                     }
-                    fprintf(stderr,"\n");
+                    fprintf(out,"]\n");
                 }
-                fprintf(stderr,"mod osc %d: amp: %f, freq %f duty %f filter_freq %f resonance %f fb/bw %f \n", i, msynth[i].amp, msynth[i].freq, msynth[i].duty, msynth[i].filter_freq, msynth[i].resonance, msynth[i].feedback);
+                fprintf(out,"\"mod_osc\":%d, \"amp\":%f, \"freq\":%f, \"duty\":%f, \"filter_freq\":%f, \"resonance:\"%f, \"fb_bw\":%f\n",
+                    i,
+                    msynth[i].amp,
+                    msynth[i].freq,
+                    msynth[i].duty,
+                    msynth[i].filter_freq,
+                    msynth[i].resonance,
+                    msynth[i].feedback);
             }
         }
+        fprintf(out, "}\n");
+    }
+    if(type>1) {
+        fprintf(out, "}\n");
     }
 }
 
+/*
+D2
+{"queue":[{"time":7549, "osc":1, "param":7, [1.000000, 1065353216]},
+{"time":9549, "osc":2, "param":7, [1.000000, 1065353216]},
+{"time":13549, "osc":3, "param":0, [0.000000, 1441799]},
+{"time":13549, "osc":3, "param":1, [-nan, -65514]},
+{"time":13549, "osc":3, "param":6, [440.000000, 1138491392]},
+{"time":13549, "osc":3, "param":7, [1.000000, 1065353216]},
+{"time":4294967294, "osc":0, "param":86, [0.000000, 0]}]
+}
+*/
 
+void show_debug(uint8_t type) { 
+    _show_debug(type, stderr);
+}
    
 void oscs_deinit() {
     free(block);
@@ -547,6 +654,11 @@ void render_task(uint8_t start, uint8_t end, uint8_t core) {
     if(global.eq[0] != 0 || global.eq[1] != 0 || global.eq[2] != 0) parametric_eq_process(fbl[core]);
 }
 
+int amy_sample_rate(int n) {
+    return SAMPLE_RATE;
+}
+
+
 // On all platforms, sysclock is based on total samples played, using audio out (i2s or etc) as system clock
 int64_t amy_sysclock() {
     return (int64_t)((total_samples / (float)SAMPLE_RATE) * 1000);
@@ -650,6 +762,17 @@ int16_t * fill_audio_buffer_task() {
 #endif
     }
     total_samples += BLOCK_SIZE;
+    // JOE
+    if (amy_capture_flag) {
+        // do the capture
+        for(int16_t i=0; i < BLOCK_SIZE; ++i) {
+            amy_capture_buffer[amy_capture_level++] = block[i];
+        }
+        if (amy_capture_level >= amy_capture_max) {
+            amy_capture_flag = 0;
+        }
+    }
+    // END
     return block;
 }
 
@@ -727,7 +850,21 @@ struct event amy_parse_message(char * message) {
                 // if we haven't yet synced our times, do it now
                 if(!computed_delta_set) {
                     computed_delta = e.time - sysclock;
-                    //fprintf(stderr,"setting computed delta to %lld (e.time is %lld sysclock %lld) max_drift_ms %d latency %d\n", computed_delta, e.time, sysclock, MAX_DRIFT_MS, global.latency_ms);
+                    printf("{\"computed_delta\":%ld, \"e_time\":%ld, \"sysclock\":%ld, \"max_drift_ms\":%d, \"latency\":%d} /****/\n",
+                        computed_delta,
+                        e.time,
+                        sysclock,
+                        MAX_DRIFT_MS,
+                        global.latency_ms);
+                    /*
+                    fprintf(stderr,
+                        "# ! setting computed delta to %lld (e.time is %lld sysclock %lld) max_drift_ms %d latency %d\n",
+                        computed_delta,
+                        e.time,
+                        sysclock,
+                        MAX_DRIFT_MS,
+                        global.latency_ms);
+                    */
                     computed_delta_set = 1;
                 }
             } else {

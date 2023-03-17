@@ -2,12 +2,16 @@
 
 #include "amy.h"
 
+#include "pcm.h"
+
 #if PCM_PATCHES_SIZE == PCM_LARGE
 #include "pcm_samples_large.h"
 #else
 #include "pcm_samples_small.h"
 #endif
 
+
+/*
 typedef struct {
     uint32_t offset;
     uint32_t length;
@@ -15,7 +19,7 @@ typedef struct {
     uint32_t loopend;
     uint8_t midinote;
 } pcm_map_t;
-
+*/
 
 #if PCM_PATCHES_SIZE == PCM_LARGE
 #include "pcm_large.h"

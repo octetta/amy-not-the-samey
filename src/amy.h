@@ -10,6 +10,8 @@
 #include <string.h>
 #include <unistd.h>
 
+// JOE
+
 #define OSCS 64              // # of simultaneous oscs to keep track of 
 #define AMY_CORES 2         
 #define PCM_LARGE 2
@@ -191,6 +193,16 @@ void render_task(uint8_t start, uint8_t end, uint8_t core);
 void show_debug(uint8_t type) ;
 void oscs_deinit() ;
 int64_t amy_sysclock();
+int amy_sample_rate(int);
+// JOE
+#define BLOCK_COUNT (8192)
+void amy_enable_capture(int flag, int max);
+int amy_full(void);
+int amy_trim(int length);
+int amy_frames(void);
+void amy_set_frames(int length);
+int16_t *amy_captured(void);
+// END
 float freq_for_midi_note(uint8_t midi_note);
 int8_t check_init(amy_err_t (*fn)(), char *name);
 void amy_increase_volume();
