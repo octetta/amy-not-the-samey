@@ -386,13 +386,16 @@ int main(int argc, char ** argv) {
         if (input[0] == '?') {
             if (input[1] == '\0') {
                 double msec = (double)(1000.0/SAMPLE_RATE*(BLOCK_COUNT*BLOCK_SIZE));
-                puts("# top-level commands :");
+                puts("### top-level commands :");
                 puts("@ -> show amy-message stats");
                 puts("% -> show captured wave as UTF-8 graph");
                 puts("= -> write captured wave to stdout as JSON");
                 puts("! -> write captured wave to a JSON file");
                 puts("^ -> write captured wave to a .raw file (s16 @ 44.1 KHz)");
                 puts("^w -> write captured wave to a .wav file (mono s16 @ 44.1 KHz)");
+                puts("& -> reverse captured wave in place");
+                puts("[{1-n} -> trim captured wave n msec from beginning");
+                puts("]{1-n} -> trim captured wave n msec from end");
                 puts(") --> store captured wave to PCM patch #67, crunching from 44.1 KHz to 22.5");
                 puts("({0-67} -> copy PCM patch # to capture, stretch from 22.05 Khz to 44.1");
                 puts("~ -> show captured left and right 0 trim points, then trim 0s from end");
@@ -402,7 +405,7 @@ int main(int argc, char ** argv) {
                 puts("# -> comment / ignore until end-of-line");
                 puts(":c -> clear screen");
                 puts(":q -> exit");
-                puts("# otherwise, AMY wire protocol plus :");
+                puts("### otherwise, AMY wire protocol plus :");
                 puts("precede with +{0-20000} to create timestamp of now + given msec");
                 puts("separate multiple voice wire protocol messages with ;");
                 puts("# more help via :");
@@ -412,7 +415,7 @@ int main(int argc, char ** argv) {
                 puts("?p -> show 'partials' patch list");
                 puts("?s -> show PCM sample list");
             } else if (input[1] == '?') {
-                puts("# AMY wire protocol");
+                puts("### AMY wire protocol");
                 puts("a amp without retrigger [0,1.0)         | A bp0");
                 puts("b algo feedback [0,1.0]                 | B bp1");
                 puts("d duty cycle of pulse [0.01,0.99]       | C bp2");
@@ -435,7 +438,7 @@ int main(int argc, char ** argv) {
                 puts("z eq_h in dB f[center]=7500Hz      \"");
             } else if (input[1] == 'e') {
                 // show AMY examples
-                puts("# Joe's examples");
+                puts("### Joe's examples");
                 puts("# 001 / FM bell patch midi key 69 = A440");
                 puts("S65;+0v3w8p230n69l1;+1000v3l0");
                 puts("# 002 / FM bell patch midi key 70");
@@ -506,7 +509,7 @@ int main(int argc, char ** argv) {
                 puts("v0n69l10");
             } else if (input[1] == 'f') {
                 // show FM patches list
-                puts("# FM (algo) patches -> w8");
+                puts("### FM (algo) patches -> w8");
                 /*
  0 BRASS 1     16 E.ORGAN 1   32 PIANO 4     48 PIPES 2
  1 BRASS 2     17 PIPES 1     33 PIANO 5     49 PIPES 3
@@ -1441,7 +1444,7 @@ int main(int argc, char ** argv) {
                 */
             } else if (input[1] == 'p') {
                 // show partial patch list
-                puts("# partials patches -> wX");
+                puts("### partials patches -> wX");
                 puts("0 G1            8 BCS LGF  E1");
                 puts("1 CL SHCI A3    9 DBL HARM G3");
                 puts("2 PLATE GONG B 10 VIS LGF#A2");
@@ -1454,7 +1457,7 @@ int main(int argc, char ** argv) {
                 puts("9 DBL HARM G3");
             } else if (input[1] == 's') {
                 // show PCM sample list
-                puts("# PCM samples -> w7");
+                puts("### PCM samples -> w7");
                 puts(" 0 808-maraca-D      23 nylon B4         46 marimba F#5");
                 puts(" 1 808-kik 4-D       24 windchimes       47 fretnoise");
                 puts(" 2 808-snr 4-D       25 clarinet A#5     48 piccolo 1-1");
@@ -1657,6 +1660,25 @@ int main(int argc, char ** argv) {
             amy_enable_capture(0, 0);
             if (verbose) {
                 printf("# capture stopped\n");
+            }
+        } else if (input[0] == '[') {
+            // trim x msec from beginning
+        } else if (input[0] == ']') {
+            // trim x msec from end
+        } else if (input[0] == '&') {
+            // reverse capture buffer
+            int16_t *capture = amy_captured();
+            int16_t a, b;
+            int length = amy_frames();
+            printf("# reverse %d frames\n", length);
+            int i;
+            int j = length-1;
+            for (i=0; i<(length/2); i++) {
+                a = capture[i];
+                b = capture[j];
+                capture[j] = a;
+                capture[i] = b;
+                j--;
             }
         } else if (input[0] == '*') {
             double a0_max = (double)INT16_MIN;
