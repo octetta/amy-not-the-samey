@@ -195,7 +195,7 @@ void oscs_deinit() ;
 int64_t amy_sysclock();
 int amy_sample_rate(int);
 // JOE
-#define BLOCK_COUNT (8192)
+#define BLOCK_COUNT (1378)
 void amy_enable_capture(int flag, int max);
 int amy_full(void);
 int amy_trim(int length);

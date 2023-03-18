@@ -1618,6 +1618,12 @@ int main(int argc, char ** argv) {
             }
         } else if (input[0] == '@') {
             // see capture level
+            int patch;
+            for (patch=67; patch<=70; patch++) {
+                int offset = pcm_map[patch].offset;
+                int length = pcm_map[patch].length;
+                printf("[%d] offset:%d length:%d\n", patch, offset, length);
+            }
             int frames = amy_frames();
             double msec = (double)(1000.0/SAMPLE_RATE*frames);
             int sysclock = amy_sysclock();
@@ -1650,7 +1656,11 @@ int main(int argc, char ** argv) {
             double y = ceil((double)max/ms_per_block);
             int z = (int)y;
             if (z <= 0) z = 0;
-            if (z >= BLOCK_COUNT) z = BLOCK_COUNT;
+            if (z >= BLOCK_COUNT) {
+                z = BLOCK_COUNT;
+                printf("# limiting capture to %d\n", z);
+                printf("# capturing %d blocks -> %d frames -> %.03f msec\n", z, z*BLOCK_SIZE, z*ms_per_block);
+            }
             if (verbose) {
                 printf("# capturing %d blocks -> %d frames -> %.03f msec\n", z, z*BLOCK_SIZE, z*ms_per_block);
             }
@@ -1774,35 +1784,40 @@ int main(int argc, char ** argv) {
             amy_set_frames(length);
         } else if (input[0] == ')') {
             // capture to user pcm
-
             int patch = 67;
             int length = 0;
-            int offset = PCM_LENGTH;
+            //int offset = PCM_LENGTH;
+            int offset = pcm_map[PCM_SAMPLES].offset;
             int16_t *capture = amy_captured();
             length = amy_frames();
-#if 1
-            printf("# crunch from %d -> %d frames into patch %d\n",
-                length, length/2, patch);
-            // crunch data by skipping every sample
-            // might improve by averaging two samples?
-            int i;
-            int j = 0;
-            int16_t *sample = &pcm[offset];
-            for (i=0; i<length; i+=2) {
-                sample[j] = capture[i];
-                j++;
+            if ((input[1] >= '0') && (input[1] <= '9')) {
+                patch = input[1] - '0';
+                if ((input[2] >= '0') && (input[2] <= '9')) {
+                    patch *= 10;
+                    patch += (input[2] - '0');
+                }
             }
-            length /= 2;
-#else
-            printf("# capture %d frames to patch %d\n",
-                length, patch);
-            // leave data as is... since PCM samples are 22050, this makes the duration 2x
-            memcpy(&pcm[offset], capture, length*sizeof(int16_t));
-#endif
-            pcm_map[PCM_SAMPLES].length = length;
-            pcm_map[PCM_SAMPLES].loopstart = 0;
-            pcm_map[PCM_SAMPLES].loopend = length-1;
-            pcm_map[PCM_SAMPLES].midinote = 69;
+            if ((patch < 67) || (patch > 70)) {
+                printf("# cannot crunch into locked patch %d\n", patch);
+            } else {
+                offset = pcm_map[patch].offset;
+                printf("# crunch from %d -> %d frames into patch %d (%d)\n",
+                    length, length/2, patch, offset);
+                // crunch data by skipping every sample
+                // might improve by averaging two samples?
+                int i;
+                int j = 0;
+                int16_t *sample = &pcm[offset];
+                for (i=0; i<length; i+=2) {
+                    sample[j] = capture[i];
+                    j++;
+                }
+                length /= 2;
+                pcm_map[patch].length = length;
+                pcm_map[patch].loopstart = 0;
+                pcm_map[patch].loopend = length-1;
+                pcm_map[patch].midinote = 69;
+            }
         } else if (input[0] == '#') {
             // don't do anything...
         } else {

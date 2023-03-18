@@ -2,9 +2,10 @@
 #define __PCM_USER_H
 
 #define PCM_SAMPLES (67)
-#define PCM_USER_SAMPLES (1)
+#define PCM_USER_SAMPLES (5)
 #define PCM_LENGTH (1176036)
-#define PCM_USER_LENGTH (4*44100*2)
+#define PCM_USER_LENGTH (4*44100)
+//#define PCM_USER_LENGTH (4*44100*2)
 
 typedef struct {
     uint32_t offset;

@@ -2,11 +2,6 @@
 #ifndef __PCM_H
 #define __PCM_H
 // JOE
-#define PCM_SAMPLES (67)
-#define PCM_USER_SAMPLES (1)
-#define PCM_LENGTH (1176036)
-#define PCM_USER_LENGTH (4*44100*2)
-// JOE
 #define PCM_SAMPLE_RATE 22050
 pcm_map_t pcm_map[PCM_SAMPLES + PCM_USER_SAMPLES] = {
     /* [0] 0 */ {0, 707, 342, 684, 89}, /* 808-MARACA-D */
@@ -77,7 +72,10 @@ pcm_map_t pcm_map[PCM_SAMPLES + PCM_USER_SAMPLES] = {
     /* [65] 200 */ {1154562, 9862, 4, 9858, 60}, /* Metronome Bell(L) */
     /* [66] 204 */ {1164424, 11612, 7135, 11601, 72}, /* Trumpet C4 */
     // JOE
-    /* [USER] */ {PCM_LENGTH, PCM_USER_LENGTH, 0, 1000, 69},
+    /* [USER0] */ {PCM_LENGTH,                     PCM_USER_LENGTH, 0, 1000, 69},
+    /* [USER1] */ {PCM_LENGTH+(PCM_USER_LENGTH*2), PCM_USER_LENGTH, 0, 1000, 69},
+    /* [USER2] */ {PCM_LENGTH+(PCM_USER_LENGTH*3), PCM_USER_LENGTH, 0, 1000, 69},
+    /* [USER3] */ {PCM_LENGTH+(PCM_USER_LENGTH*4), PCM_USER_LENGTH, 0, 1000, 69},
 };
 
 #endif  // __PCM_H
