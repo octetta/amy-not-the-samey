@@ -376,7 +376,7 @@ void _show_debug(uint8_t type, FILE *out) {
         for(uint16_t i=0;i<q;i++) {
             char c = ',';
             if (i == q-1) c = ']';
-            fprintf(out, "{\"time\":%u, \"osc\":%d, \"param\":%d, [%f, %d]}%c\n",
+            fprintf(out, "{\"time\":%u, \"osc\":%d, \"param\":%d, \"e\":[%f, %d]}%c\n",
                 ptr->time,
                 ptr->osc,
                 ptr->param,
@@ -397,8 +397,14 @@ void _show_debug(uint8_t type, FILE *out) {
         fprintf(out, "\"bank\":[\n");
         for(uint8_t i=0;i<OSCS;i++) {
             if (i == OSCS-1) c = ']';
-            fprintf(out,"{\"osc\":%d, \"status\":%d, \"amp\":%f, \"wave\":%d, \"freq\":%f, \"duty\":%f, \"mod_target\":%d \"mod_source\":%d, \"velocity\":%f, \"filter_freq\":%f, \"ratio\":%f, \"feedback\":%f, \"resonance\":%f, \"step\":%f, \"algo\":%d, \"source\":[%d,%d,%d,%d,%d,%d]}%c\n",
+            fprintf(out,
+                "{\"osc\":%d, \"status\":%d, \"amp\":%f, \"wave\":%d, \"freq\":%f,\n"
+                " \"duty\":%f, \"mod_target\":%d, \"mod_source\":%d, \"velocity\":%f,\n"
+                " \"filter_freq\":%f, \"ratio\":%f, \"feedback\":%f, \"resonance\":%f,\n"
+                " \"step\":%f, \"algo\":%d, \"source\":[%d,%d,%d,%d,%d,%d]%c\n",
+                
                 i,
+                
                 synth[i].status,
                 synth[i].amp,
                 synth[i].wave,
@@ -423,16 +429,26 @@ void _show_debug(uint8_t type, FILE *out) {
                 synth[i].algo_source[5],
                 c);
             if(type>3) { 
-                fprintf(out, "[");
+                fprintf(out, "\"MODS\":{[");
                 for(uint8_t j=0;j<MAX_BREAKPOINT_SETS;j++) {
-                    fprintf(out,"{\"bp%d\":%d, [", j, synth[i].breakpoint_target[j]);
+                    fprintf(out,"{\"bp%d\":%d, \"sets\":[", j, synth[i].breakpoint_target[j]);
+                    char c = ',';
                     for(uint8_t k=0;k<MAX_BREAKPOINTS;k++) {
-                        fprintf(out,"[%d, %f],", synth[i].breakpoint_times[j][k], synth[i].breakpoint_values[j][k]);
+                        if (k == (MAX_BREAKPOINTS-1)) c = ' ';
+                        fprintf(out,"[%d, %f]%c",
+                            synth[i].breakpoint_times[j][k],
+                            synth[i].breakpoint_values[j][k],
+                            c);
                     }
-                    fprintf(out,"]\n");
+                    fprintf(out,"]},\n");
                 }
-                fprintf(out,"\"mod_osc\":%d, \"amp\":%f, \"freq\":%f, \"duty\":%f, \"filter_freq\":%f, \"resonance:\"%f, \"fb_bw\":%f\n",
+                fprintf(out,"],\n");
+                fprintf(out,
+                    "\"mod_osc\":%d, \"amp\":%f, \"freq\":%f, \"duty\":%f,\n"
+                    " \"filter_freq\":%f, \"resonance:\"%f, \"fb_bw\":%f}\n",
+                    
                     i,
+                    
                     msynth[i].amp,
                     msynth[i].freq,
                     msynth[i].duty,
@@ -443,7 +459,8 @@ void _show_debug(uint8_t type, FILE *out) {
         }
         fprintf(out, "}\n");
     }
-    if(type>1) {
+    //if(type>1) {
+    if(type == 2) {
         fprintf(out, "}\n");
     }
 }

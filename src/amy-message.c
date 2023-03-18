@@ -386,21 +386,26 @@ int main(int argc, char ** argv) {
         if (input[0] == '?') {
             if (input[1] == '\0') {
                 double msec = (double)(1000.0/SAMPLE_RATE*(BLOCK_COUNT*BLOCK_SIZE));
-                puts("# amy-message specials");
+                puts("# top-level commands :");
                 puts("@ -> show amy-message stats");
-                puts("= -> show captured data to stdout as JSON");
-                puts("% -> show captured data as waveform");
-                puts(") --> save captured data on PCM sample slot 67");
-                puts("! -> write captured data to a JSON file");
-                puts("^ -> write captured data to a WAV file");
-                puts("~ -> show potential zero left and right trimming index");
-                printf(">[0-9]+ -> capture frames for specified msec (max = %d)\n", (int)msec);
+                puts("% -> show captured wave as UTF-8 graph");
+                puts("= -> write captured wave to stdout as JSON");
+                puts("! -> write captured wave to a JSON file");
+                puts("^ -> write captured wave to a .raw file (s16 @ 44.1 KHz)");
+                puts("^w -> write captured wave to a .wav file (mono s16 @ 44.1 KHz)");
+                puts(") --> store captured wave to PCM patch #67, crunching from 44.1 KHz to 22.5");
+                puts("({0-67} -> copy PCM patch # to capture, stretch from 22.05 Khz to 44.1");
+                puts("~ -> show captured left and right 0 trim points, then trim 0s from end");
+                puts("* -> show captured samples min/max, then expand dynamic range");
+                printf(">{1-%d} -> capture live frames for given msec\n", (int)msec);
                 puts("< -> stop capture");
-                puts("-> comment / ignore until end-of-line");
-                puts("# otherwise, AMY wire protocol plus...");
-                puts("precede with +[0-9]+ to create timestamp of NOW + specified msec");
-                puts("separate multiple oscillator (v) messages with ;");
-                puts("# more info via");
+                puts("# -> comment / ignore until end-of-line");
+                puts(":c -> clear screen");
+                puts(":q -> exit");
+                puts("# otherwise, AMY wire protocol plus :");
+                puts("precede with +{0-20000} to create timestamp of now + given msec");
+                puts("separate multiple voice wire protocol messages with ;");
+                puts("# more help via :");
                 puts("?? -> show AMY commands");
                 puts("?e -> show AMY examples");
                 puts("?f -> show FM patch list");
@@ -408,26 +413,26 @@ int main(int argc, char ** argv) {
                 puts("?s -> show PCM sample list");
             } else if (input[1] == '?') {
                 puts("# AMY wire protocol");
-                puts("a amp without retrigger 0.0->1.0+       | A bp0");
-                puts("b algo feedback 0.0->1.0                | B bp1");
-                puts("d duty cycle of pulse 0.01->0.99        | C bp2");
+                puts("a amp without retrigger [0,1.0)         | A bp0");
+                puts("b algo feedback [0,1.0]                 | B bp1");
+                puts("d duty cycle of pulse [0.01,0.99]       | C bp2");
                 puts("f frequency of osc                      | D debug");
                 puts("g modulation tarGet                     | F center freq for filter");
                 puts("  1=amp         2=duty  4=freq          | G filter 0=none 1=LPF 2=BPF 3=HPF");
                 puts("  8=filter-freq 16=rez  32=feedback     | I ratio (see AMY webpage)");
-                puts("l velocity/trigger >0.0 or note-off 0   | L mod source osc / LFO");
-                puts("n midi note number                      | N latency ms");
-                puts("o DX7 algorithm 1-32                    | O oscs algo 6 comma-sep, -1=none");
-                puts("p patch                                 | P phase 0.0->1.0 where osc cycle starts");
-                puts("t timestamp in ms for event             | R rez q filter 0.0->10.0, default 0.7");
-                puts("v osc selector 0->63                    | S reset oscs");
+                puts("l velocity/trigger >0.0 or note-off =0  | L mod source osc / LFO");
+                puts("n midi note number                      | N latency in msec");
+                puts("o DX7 algorithm [1,32]                  | O oscs algo 6 comma-sep, -1=none");
+                puts("p patch                                 | P phase [0,1.0] where osc cycle starts");
+                puts("t timestamp in ms for event             | R rez q filter [0,10.0], default 0.7");
+                puts("v osc selector [0,63]                   | S reset oscs");
                 puts("w wave type                             | T bp0 target");
                 puts("  0=sine 1=pulse  2=saw-dn 3=saw-up     | W bp1 target");
                 puts("  4=tri  5=noise  6=ks     7=pcm        | X bp2 target");
                 puts("  8=algo 9=part  10=parts 11=off        | V volume knob for everything");
-                puts("x eq_l in dB fc=800Hz -15.0->15.0 0=off");
-                puts("y eq_m in dB fc=2500Hz     \"");
-                puts("z eq_h in dB fc=7500Hz     \"");
+                puts("x eq_l in dB f[center]=800Hz [-15.0,15.0] 0=off");
+                puts("y eq_m in dB f[center]=2500Hz      \"");
+                puts("z eq_h in dB f[center]=7500Hz      \"");
             } else if (input[1] == 'e') {
                 // show AMY examples
                 puts("# Joe's examples");
@@ -1471,7 +1476,7 @@ int main(int argc, char ** argv) {
                 puts("18 cello E4          41 palmmuted gtr D4 64 harp D#4");
                 puts("19 cello-F#2         42 shamisen F#5     65 metronome bell(L)");
                 puts("20 steel Gtr B4      43 koto F#5         66 trumpet C4");
-                puts("21 clean F50         44 steel drum C6");
+                puts("21 clean F50         44 steel drum C6    [67-70] user 0-3");
                 puts("22 synthvz F#5       45 power kick 3");
             }
         } else if (input[0] == ':') {
