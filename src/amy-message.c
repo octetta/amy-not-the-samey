@@ -303,6 +303,15 @@ int main(int argc, char ** argv) {
         else use_history = 0;
     }
 
+    // initialize PCM user slots to something sane
+    for (int i=0; i<=PCM_USER_SAMPLES; i++) {
+        pcm_map[PCM_SAMPLES + i].offset = PCM_LENGTH + (PCM_USER_LENGTH * i);
+        pcm_map[PCM_SAMPLES + i].length = PCM_USER_LENGTH;
+        pcm_map[PCM_SAMPLES + i].loopstart = 0;
+        pcm_map[PCM_SAMPLES + i].loopend = PCM_USER_LENGTH-1;
+        pcm_map[PCM_SAMPLES + i].midinote = 69;
+    }
+    
     amy_start();
     amy_live_start();
     amy_reset_oscs();
@@ -396,8 +405,8 @@ int main(int argc, char ** argv) {
                 puts("& -> reverse captured wave in place");
                 puts("[{1-n} -> trim captured wave n msec from beginning");
                 puts("]{1-n} -> trim captured wave n msec from end");
-                puts(") --> store captured wave to PCM patch #67, crunching from 44.1 KHz to 22.5");
-                puts("({0-67} -> copy PCM patch # to capture, stretch from 22.05 Khz to 44.1");
+                printf(") --> store captured wave to PCM patch #%d, crunching from 44.1 KHz to 22.5\n", PCM_SAMPLES);
+                printf("({0-%d} -> copy PCM patch # to capture, stretch from 22.05 Khz to 44.1\n", (PCM_SAMPLES + PCM_USER_SAMPLES));
                 puts("~ -> show captured left and right 0 trim points, then trim 0s from end");
                 puts("* -> show captured samples min/max, then expand dynamic range");
                 printf(">{1-%d} -> capture live frames for given msec\n", (int)msec);
@@ -1479,7 +1488,10 @@ int main(int argc, char ** argv) {
                 puts("18 cello E4          41 palmmuted gtr D4 64 harp D#4");
                 puts("19 cello-F#2         42 shamisen F#5     65 metronome bell(L)");
                 puts("20 steel Gtr B4      43 koto F#5         66 trumpet C4");
-                puts("21 clean F50         44 steel drum C6    [67-70] user 0-3");
+                printf("21 clean F50         44 steel drum C6    [%d-%d] user 0-%d\n",
+                    PCM_SAMPLES,
+                    (PCM_SAMPLES + PCM_USER_SAMPLES),
+                    PCM_USER_SAMPLES - 1);
                 puts("22 synthvz F#5       45 power kick 3");
             }
         } else if (input[0] == ':') {
@@ -1619,10 +1631,14 @@ int main(int argc, char ** argv) {
         } else if (input[0] == '@') {
             // see capture level
             int patch;
-            for (patch=67; patch<=70; patch++) {
+            for (patch=PCM_SAMPLES; patch<=(PCM_SAMPLES + PCM_USER_SAMPLES); patch++) {
                 int offset = pcm_map[patch].offset;
                 int length = pcm_map[patch].length;
-                printf("[%d] offset:%d length:%d\n", patch, offset, length);
+                int loopstart = pcm_map[patch].loopstart;
+                int loopend = pcm_map[patch].loopend;
+                int midinote = pcm_map[patch].midinote;
+                printf("[%d] offset:%d length:%d loopstart:%d loopend:%d midinote:%d\n",
+                    patch, offset, length, loopstart, loopend, midinote);
             }
             int frames = amy_frames();
             double msec = (double)(1000.0/SAMPLE_RATE*frames);
@@ -1748,7 +1764,7 @@ int main(int argc, char ** argv) {
             printf("{\"begin\":%d, \"end\":%d, \"length\":%d, \"trimmed\": %d}\n",
                 top, end, len, r);
         } else if (input[0] == '(') {
-            int patch = 67;
+            int patch = PCM_SAMPLES;
             int length = 0;
             int offset = 0;
             int16_t *capture = amy_captured();
@@ -1784,7 +1800,7 @@ int main(int argc, char ** argv) {
             amy_set_frames(length);
         } else if (input[0] == ')') {
             // capture to user pcm
-            int patch = 67;
+            int patch = PCM_SAMPLES;
             int length = 0;
             //int offset = PCM_LENGTH;
             int offset = pcm_map[PCM_SAMPLES].offset;
@@ -1797,7 +1813,7 @@ int main(int argc, char ** argv) {
                     patch += (input[2] - '0');
                 }
             }
-            if ((patch < 67) || (patch > 70)) {
+            if ((patch < PCM_SAMPLES) || (patch > (PCM_SAMPLES + PCM_USER_SAMPLES))) {
                 printf("# cannot crunch into locked patch %d\n", patch);
             } else {
                 offset = pcm_map[patch].offset;

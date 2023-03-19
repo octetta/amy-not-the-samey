@@ -72,10 +72,10 @@ pcm_map_t pcm_map[PCM_SAMPLES + PCM_USER_SAMPLES] = {
     /* [65] 200 */ {1154562, 9862, 4, 9858, 60}, /* Metronome Bell(L) */
     /* [66] 204 */ {1164424, 11612, 7135, 11601, 72}, /* Trumpet C4 */
     // JOE
-    /* [USER0] */ {PCM_LENGTH,                     PCM_USER_LENGTH, 0, 1000, 69},
-    /* [USER1] */ {PCM_LENGTH+(PCM_USER_LENGTH*2), PCM_USER_LENGTH, 0, 1000, 69},
-    /* [USER2] */ {PCM_LENGTH+(PCM_USER_LENGTH*3), PCM_USER_LENGTH, 0, 1000, 69},
-    /* [USER3] */ {PCM_LENGTH+(PCM_USER_LENGTH*4), PCM_USER_LENGTH, 0, 1000, 69},
+    ///* [USER0] */ {PCM_LENGTH,                     PCM_USER_LENGTH, 0, 1000, 69},
+    ///* [USER1] */ {PCM_LENGTH+(PCM_USER_LENGTH*2), PCM_USER_LENGTH, 0, 1000, 69},
+    ///* [USER2] */ {PCM_LENGTH+(PCM_USER_LENGTH*3), PCM_USER_LENGTH, 0, 1000, 69},
+    ///* [USER3] */ {PCM_LENGTH+(PCM_USER_LENGTH*4), PCM_USER_LENGTH, 0, 1000, 69},
 };
 
 #endif  // __PCM_H
